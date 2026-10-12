@@ -7,3 +7,8 @@
   port over Dio.
 - The account routes (`getAccessToken`, `refreshToken`, `accountInfo`,
   `unlinkAccount`) also accept the Better Auth 1.6 fields, for 1.6 servers.
+- Convex (`package:re_better_auth/convex.dart`): `convexClient()` and
+  `ConvexBetterAuthProvider` from `@convex-dev/better-auth` 0.12.5;
+  `useConvexAuth`, `Authenticated`, `Unauthenticated`, `AuthLoading` and
+  `AuthRefreshing` from `convex` 1.46.0; and `ConvexTokenAuth` for Dart Convex
+  clients that take a fixed token.

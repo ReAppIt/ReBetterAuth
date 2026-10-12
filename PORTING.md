@@ -12,6 +12,8 @@ its upstream source. This file is the map.
 | `@better-auth/core` | 1.7.7 | [`packages/core/src`](https://github.com/better-auth/better-auth/tree/v1.7.7/packages/core/src) |
 | `@better-fetch/fetch` | 1.3.2 | [`packages/better-fetch/src`](https://github.com/better-auth/better-fetch/tree/v1.3.2/packages/better-fetch/src) |
 | `nanostores` | 1.3.0 | [`atom`, `lifecycle`](https://github.com/nanostores/nanostores/tree/1.3.0) |
+| `@convex-dev/better-auth` | 0.12.5 | [`src`](https://github.com/get-convex/better-auth/tree/v0.12.5/src) |
+| `convex` | 1.46.0 | [`src`](https://github.com/get-convex/convex-js/tree/npm/1.46.0/src) |
 
 ## File map
 
@@ -61,10 +63,17 @@ its upstream source. This file is the map.
 | `lib/src/better_fetch/dio_fetch.dart` | new: the Dio transport that replaces `globalThis.fetch` |
 | `lib/src/better_fetch/url_search_params.dart` | new: the WHATWG `URLSearchParams` subset |
 | `lib/src/nanostores/atom.dart` | `nanostores/atom/index.js`, `nanostores/lifecycle/index.js` |
+| `lib/src/convex_better_auth/plugins/convex/client.dart` | `@convex-dev/better-auth` `src/plugins/convex/client.ts` |
+| `lib/src/convex_better_auth/flutter/index.dart` | `@convex-dev/better-auth` `src/react/index.tsx` |
+| `lib/src/convex/flutter/convex_auth_state.dart` | `convex` `src/react/ConvexAuthState.tsx` |
+| `lib/src/convex/flutter/auth_helpers.dart` | `convex` `src/react/auth_helpers.tsx` |
+| `lib/src/convex/browser/sync/authentication_manager.dart` | `convex` `src/browser/sync/authentication_manager.ts` (token refetching) |
 
 Tests mirror the same layout: `test/expo/*` ports `expo/test/*.test.ts`,
 `test/better_auth/client/*` ports `better-auth/src/client/*.test.ts`, and
-`test/better_fetch/*` ports `better-fetch/src/test/*.test.ts`.
+`test/better_fetch/*` ports `better-fetch/src/test/*.test.ts`. The Convex
+packages have no client tests upstream; `test/convex/*` and
+`test/convex_better_auth/*` are new.
 
 ## Deviations
 
@@ -138,6 +147,27 @@ Tests mirror the same layout: `test/expo/*` ports `expo/test/*.test.ts`,
   `flutter_web_auth_2` matches), not the full callback URL.
 - Android's `dismissAuthSession()` maps to `clearAllDanglingCalls()`.
 - Web throws `UnsupportedError`; Expo's web branches are not ported yet.
+
+### Convex
+
+- **`client` is a `ConvexAuthClient`.** Dart Convex clients share no type, so
+  the provider takes the two calls it makes (`IConvexReactClient`).
+- **`ConvexTokenAuth`** brings the token refetching of `AuthenticationManager`
+  to clients that take a fixed token. With no server confirmation, it treats
+  an applied token as accepted: it never re-authenticates after a rejection,
+  and `isRefreshing` stays false. It also refetches on app resume when the
+  refetch time passed while the device slept, and `clearAuth` cancels the
+  scheduled refetch.
+- **Effects run after the next frame**, so `Authenticated` subtrees are gone
+  before Convex auth is cleared, the order React's effects guarantee.
+- **`useConvexAuth` takes the `BuildContext`.**
+- **Token cache.** The cached and in-flight tokens are dropped when the session
+  id changes; React's callback could return the previous session's token.
+  After a token fetch fails, the next successful session refresh makes a new
+  fetcher, so an app that starts offline authenticates once it is back online;
+  React stays unauthenticated until the session changes.
+- **Not ported:** `initialToken` (server rendering), the `ott` cross-domain
+  handoff and `crossDomainClient` (web), and `AuthBoundary` (experimental).
 
 ### Not ported
 

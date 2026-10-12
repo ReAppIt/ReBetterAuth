@@ -4,8 +4,9 @@
 > **AI-written, human-reviewed.** Every line of this package was written by AI
 > (Claude, by Anthropic) as a port of the official
 > [`@better-auth/expo`](https://github.com/better-auth/better-auth/tree/v1.7.7/packages/expo)
-> client and the better-auth core client it plugs into, and the port has been
-> fully reviewed by a human. It is not affiliated with Better Auth.
+> client, the better-auth core client it plugs into and Convex's Better Auth
+> provider, and the port has been fully reviewed by a human. It is not
+> affiliated with Better Auth or Convex.
 
 A Flutter port of the [Better Auth Expo integration](https://www.better-auth.com/docs/integrations/expo).
 It keeps the upstream structure and behaviour and swaps the React Native pieces
@@ -21,7 +22,8 @@ for Flutter ones:
 
 Because the client speaks the same protocol as `@better-auth/expo`, your server
 uses the stock `expo()` plugin; there is no server code to port. Supported
-platforms: **iOS and Android**.
+platforms: **iOS and Android**. Apps on Convex can also use the port of Convex's
+Better Auth provider; see [Convex](#convex).
 
 ## Installation
 
@@ -274,14 +276,177 @@ verification and more). Call any other endpoint, such as a plugin's, by path:
 
 ```dart
 await authClient('/two-factor/enable', body: {'password': password});
-
-// Convex: exchange the Better Auth session for a Convex JWT.
-final (:data, error: _) = await authClient<Map<String, Object?>>('/convex/token');
-final convexToken = data?['token'];
 ```
 
 A body makes the call a POST, otherwise it is a GET; force a method with
 `fetchOptions: ClientFetchOption(method: 'POST')`.
+
+## Convex
+
+With [Convex](https://convex.dev), Better Auth runs inside your Convex
+deployment through the [Convex Better Auth component](https://labs.convex.dev/better-auth).
+These steps follow its
+[Expo guide](https://labs.convex.dev/better-auth/framework-guides/expo), with
+this package as the client. `package:re_better_auth/convex.dart` ports the
+component's client plugin and `ConvexBetterAuthProvider`.
+
+### 1. Install the server packages
+
+In your Convex project, install the component and Better Auth 1.6, the version
+the component requires:
+
+```bash
+npm install convex@latest @convex-dev/better-auth
+npm install better-auth@~1.6.15 @better-auth/expo@~1.6.15
+```
+
+### 2. Register the component
+
+```ts
+// convex/convex.config.ts
+import { defineApp } from "convex/server";
+import betterAuth from "@convex-dev/better-auth/convex.config";
+
+const app = defineApp();
+app.use(betterAuth);
+
+export default app;
+```
+
+### 3. Add the Convex auth config
+
+```ts
+// convex/auth.config.ts
+import { getAuthConfigProvider } from "@convex-dev/better-auth/auth-config";
+import type { AuthConfig } from "convex/server";
+
+export default {
+  providers: [getAuthConfigProvider()],
+} satisfies AuthConfig;
+```
+
+### 4. Set the secret
+
+```bash
+npx convex env set BETTER_AUTH_SECRET=$(openssl rand -base64 32)
+```
+
+Your app uses both deployment URLs: `https://<deployment>.convex.cloud` for the
+Convex client and `https://<deployment>.convex.site` for Better Auth.
+
+### 5. Create the Better Auth instance
+
+The `expo()` and `convex()` plugins are both required:
+
+```ts
+// convex/auth.ts
+import { createClient, type GenericCtx } from "@convex-dev/better-auth";
+import { convex } from "@convex-dev/better-auth/plugins";
+import { betterAuth } from "better-auth/minimal";
+import { expo } from "@better-auth/expo";
+import { components } from "./_generated/api";
+import type { DataModel } from "./_generated/dataModel";
+import authConfig from "./auth.config";
+
+export const authComponent = createClient<DataModel>(components.betterAuth);
+
+export const createAuth = (ctx: GenericCtx<DataModel>) =>
+  betterAuth({
+    trustedOrigins: ["myapp://"],
+    database: authComponent.adapter(ctx),
+    emailAndPassword: { enabled: true, requireEmailVerification: false },
+    plugins: [expo(), convex({ authConfig })],
+  });
+```
+
+### 6. Mount the handlers
+
+```ts
+// convex/http.ts
+import { httpRouter } from "convex/server";
+import { authComponent, createAuth } from "./auth";
+
+const http = httpRouter();
+
+authComponent.registerRoutes(http, createAuth);
+
+export default http;
+```
+
+### 7. Create the auth client
+
+Point the client at your `.convex.site` URL and add `convexClient()`:
+
+```dart
+import 'package:re_better_auth/convex.dart';
+import 'package:re_better_auth/re_better_auth.dart';
+
+final authClient = createAuthClient(
+  baseURL: 'https://adjective-animal-123.convex.site',
+  plugins: [
+    flutterClient(
+      scheme: 'myapp',
+      storagePrefix: 'myapp',
+      storage: const SecureStore(),
+    ),
+    convexClient(),
+  ],
+);
+```
+
+### 8. Set up the Convex provider
+
+Wrap your app in `ConvexBetterAuthProvider`. It gives your Convex client a token
+while a user is signed in and clears it after sign-out. Dart Convex clients
+take a fixed token (`setAuth(token: ...)`), so pass yours through
+`ConvexTokenAuth`, which also refetches the token 10 seconds before it expires:
+
+```dart
+final convex = ...; // Your Convex client for https://adjective-animal-123.convex.cloud
+
+runApp(
+  ConvexBetterAuthProvider(
+    client: ConvexTokenAuth((token) => convex.setAuth(token: token)),
+    authClient: authClient,
+    child: const MyApp(),
+  ),
+);
+```
+
+### 9. Finish the Flutter setup
+
+Steps 7 and 8 of [Installation](#installation) apply as written: the Android
+callback activity and the backup rules. Your scheme is already in
+`trustedOrigins` from step 5.
+
+### Usage
+
+Sign users in and out with `authClient` as usual. Below the provider,
+`useConvexAuth(context)` returns `isLoading`, `isAuthenticated` and
+`isRefreshing`, and these widgets show their child only in the matching state:
+
+```dart
+const Column(
+  children: [
+    AuthLoading(child: CircularProgressIndicator()),
+    Unauthenticated(child: SignInScreen()),
+    Authenticated(child: HomeScreen()),
+  ],
+)
+```
+
+On sign-out, `Authenticated` children are removed before the Convex token is
+cleared, so their queries do not re-run signed out. To manage auth outside the
+widget tree, `ConvexAuthController(client: ..., auth: AuthFromBetterAuth(authClient))`
+runs the same logic and exposes its `state` as a `ValueListenable`.
+
+For social sign-in, the authorized origin and redirect URI use your Convex site
+URL. For Google:
+
+```text
+https://adjective-animal-123.convex.site
+https://adjective-animal-123.convex.site/api/auth/callback/google
+```
 
 ## Options
 
