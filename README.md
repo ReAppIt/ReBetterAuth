@@ -94,6 +94,7 @@ Better Auth redirects back to your app through a deep link with your app's
 scheme, so add the scheme to `trustedOrigins` in your Better Auth config:
 
 ```ts
+// lib/auth.ts
 export const auth = betterAuth({
   trustedOrigins: ["myapp://"],
 });
@@ -102,6 +103,7 @@ export const auth = betterAuth({
 Several schemes and wildcards work as well:
 
 ```ts
+// lib/auth.ts
 export const auth = betterAuth({
   trustedOrigins: [
     "myapp://",
@@ -121,6 +123,7 @@ scheme too.
 `android/app/src/main/AndroidManifest.xml`, with your scheme:
 
 ```xml
+<!-- android/app/src/main/AndroidManifest.xml -->
 <manifest>
   <application>
     <activity
@@ -149,6 +152,7 @@ or exclude flutter_secure_storage's preferences
 ([details](https://pub.dev/packages/flutter_secure_storage#disabling-auto-backup)):
 
 ```xml
+<!-- android/app/src/main/AndroidManifest.xml -->
 <application android:allowBackup="false" ...>
 ```
 
@@ -160,6 +164,7 @@ hand.
 ### Authenticating users
 
 ```dart
+// lib/sign_in.dart
 final (:data, :error) = await authClient.signIn.email(
   email: email,
   password: password,
@@ -170,6 +175,7 @@ if (error != null) {
 ```
 
 ```dart
+// lib/sign_up.dart
 await authClient.signUp.email(email: email, password: password, name: name);
 ```
 
@@ -183,6 +189,7 @@ thrown. Transport failures (no network) throw a `DioException`.
 `callbackURL` such as `/dashboard` becomes the deep link `myapp:///dashboard`.
 
 ```dart
+// lib/social_sign_in.dart
 final (:data, :error) = await authClient.signIn.social(
   provider: 'google',
   callbackURL: '/dashboard',
@@ -200,6 +207,7 @@ Sign in with a provider SDK on the device, then let the server verify the ID
 token. Google, Apple and Facebook support this.
 
 ```dart
+// lib/social_sign_in.dart
 import 'package:google_sign_in/google_sign_in.dart';
 
 final account = await GoogleSignIn.instance.authenticate();
@@ -219,6 +227,7 @@ session and keeps it fresh: after sign-in and sign-out, when the app returns to
 the foreground, and when the device comes back online.
 
 ```dart
+// lib/home.dart
 ValueListenableBuilder(
   valueListenable: authClient.useSession,
   builder: (context, session, _) {
@@ -242,6 +251,7 @@ available: `session.data?.user['favoriteColor']`.
 Read the stored cookies and send them yourself:
 
 ```dart
+// lib/api_client.dart
 final cookie = await authClient.getCookie();
 final response = await dio.get<Object?>(
   'http://localhost:8081/api/secure-endpoint',
@@ -256,6 +266,8 @@ same fields as the JS client. Pass the ones your server's Better Auth version
 expects:
 
 ```dart
+// lib/linked_accounts.dart
+
 // Better Auth 1.6: select the account by provider.
 await authClient.getAccessToken(providerId: 'google');
 
@@ -275,6 +287,7 @@ Typed methods cover the core API (sessions, accounts, passwords, email
 verification and more). Call any other endpoint, such as a plugin's, by path:
 
 ```dart
+// lib/two_factor.dart
 await authClient('/two-factor/enable', body: {'password': password});
 ```
 
@@ -378,6 +391,7 @@ export default http;
 Point the client at your `.convex.site` URL and add `convexClient()`:
 
 ```dart
+// lib/auth_client.dart
 import 'package:re_better_auth/convex.dart';
 import 'package:re_better_auth/re_better_auth.dart';
 
@@ -402,6 +416,7 @@ take a fixed token (`setAuth(token: ...)`), so pass yours through
 `ConvexTokenAuth`, which also refetches the token 10 seconds before it expires:
 
 ```dart
+// lib/main.dart
 final convex = ...; // Your Convex client for https://adjective-animal-123.convex.cloud
 
 runApp(
@@ -426,6 +441,7 @@ Sign users in and out with `authClient` as usual. Below the provider,
 `isRefreshing`, and these widgets show their child only in the matching state:
 
 ```dart
+// lib/home.dart
 const Column(
   children: [
     AuthLoading(child: CircularProgressIndicator()),
@@ -468,6 +484,7 @@ match the Android intent filter and the server's `trustedOrigins`.
 cookies do not trigger session refetches. Defaults to `['better-auth']`.
 
 ```dart
+// lib/auth_client.dart
 flutterClient(
   scheme: 'myapp',
   storage: const SecureStore(),
