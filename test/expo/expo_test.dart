@@ -677,13 +677,36 @@ void main() {
       expect(reads.length, writes.length);
     });
 
-    for (final (label, expiresAt) in <(String, String?)>[
+    test('hydrates when session.expiresAt is epoch milliseconds', () async {
+      final storage = MemoryStorage({
+        'better-auth_session_data': jsonEncode(<String, Object?>{
+          'user': <String, Object?>{'id': 'u1'},
+          'session': <String, Object?>{
+            'id': 's1',
+            'expiresAt': DateTime.now()
+                .add(const Duration(minutes: 1))
+                .millisecondsSinceEpoch,
+          },
+        }),
+      });
+      final client = makeClient(server: FakeAuthServer(), storage: storage);
+      await client.getSession();
+      expect(client.useSession.get().data?.user.id, 'u1');
+    });
+
+    for (final (label, expiresAt) in <(String, Object?)>[
       (
         'expired',
         DateTime.now()
             .toUtc()
             .subtract(const Duration(minutes: 1))
             .toIso8601String(),
+      ),
+      (
+        'expired epoch milliseconds',
+        DateTime.now()
+            .subtract(const Duration(minutes: 1))
+            .millisecondsSinceEpoch,
       ),
       ('missing', null),
       ('invalid', 'not-a-date'),

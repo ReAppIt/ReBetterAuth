@@ -1,13 +1,8 @@
 import 'package:re_better_auth/src/better_auth/client/types.dart';
 import 'package:re_better_auth/src/better_auth/core/db.dart';
 import 'package:re_better_auth/src/better_auth/core/plugin_client.dart';
+import 'package:re_better_auth/src/better_auth/utils/date.dart';
 import 'package:re_better_auth/src/better_fetch/types.dart';
-
-DateTime? _date(Object? value) => switch (value) {
-  final DateTime date => date,
-  final String text => DateTime.tryParse(text),
-  _ => null,
-};
 
 /// `/sign-in/*` result: a redirect URL, or a session [token] and [user].
 extension type SignInResponse(JsonMap json) {
@@ -105,10 +100,10 @@ extension type OAuthTokens(JsonMap json) {
   String? get refreshToken => json['refreshToken'] as String?;
 
   /// Access token expiry.
-  DateTime? get accessTokenExpiresAt => _date(json['accessTokenExpiresAt']);
+  DateTime? get accessTokenExpiresAt => toDate(json['accessTokenExpiresAt']);
 
   /// Refresh token expiry.
-  DateTime? get refreshTokenExpiresAt => _date(json['refreshTokenExpiresAt']);
+  DateTime? get refreshTokenExpiresAt => toDate(json['refreshTokenExpiresAt']);
 
   /// OpenID ID token.
   String? get idToken => json['idToken'] as String?;

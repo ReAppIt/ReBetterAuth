@@ -1,6 +1,6 @@
 name: re_better_auth
 description: "Flutter port of the official Better Auth Expo client: secure cookie storage, social sign-in through an auth session, and a cached, auto-refreshing session."
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/ReAppIt/ReBetterAuth
 issue_tracker: https://github.com/ReAppIt/ReBetterAuth/issues
 topics:

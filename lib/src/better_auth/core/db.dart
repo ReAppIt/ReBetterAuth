@@ -1,18 +1,13 @@
+import 'package:re_better_auth/src/better_auth/utils/date.dart';
+
 /// A decoded JSON object.
 typedef JsonMap = Map<String, Object?>;
 
 DateTime _date(Object? value) {
-  final date = _optionalDate(value);
+  final date = toDate(value);
   if (date == null) throw FormatException('Expected a date, got $value');
   return date;
 }
-
-DateTime? _optionalDate(Object? value) => switch (value) {
-  final DateTime date => date,
-  final String text => DateTime.tryParse(text),
-  final int millis => DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true),
-  _ => null,
-};
 
 /// A better-auth user over its JSON map; plugin and additional fields stay in [json].
 extension type User(JsonMap json) {
@@ -91,8 +86,7 @@ extension type Account(JsonMap json) {
   ];
 
   /// Access token expiry, when the provider reports one.
-  DateTime? get accessTokenExpiresAt =>
-      _optionalDate(json['accessTokenExpiresAt']);
+  DateTime? get accessTokenExpiresAt => toDate(json['accessTokenExpiresAt']);
 
   /// Creation time.
   DateTime get createdAt => _date(json['createdAt']);

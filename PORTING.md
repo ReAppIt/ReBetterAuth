@@ -44,6 +44,7 @@ its upstream source. This file is the map.
 | `lib/src/better_auth/cookies/cookie_utils.dart` | `better-auth/src/cookies/cookie-utils.ts` |
 | `lib/src/better_auth/utils/url.dart` | `better-auth/src/utils/url.ts` (client branch of `getBaseURL`) |
 | `lib/src/better_auth/utils/defu.dart` | the `defu` package used by `config.ts` |
+| `lib/src/better_auth/utils/date.dart` | new: JS `new Date(value)` for JSON dates |
 | `lib/src/better_auth/core/plugin_client.dart` | `core/src/types/plugin-client.ts` |
 | `lib/src/better_auth/core/db.dart` | `core/src/db/schema/{user,session,account}.ts` |
 | `lib/src/better_auth/core/error_codes.dart` | `core/src/error/codes.ts`, `core/src/utils/error-codes.ts` |
@@ -103,6 +104,9 @@ packages have no client tests upstream; `test/convex/*` and
 - **Constant names** are lowerCamelCase (`STORE_UNMOUNT_DELAY` →
   `storeUnmountDelay`, `BASE_ERROR_CODES` → `baseErrorCodes`,
   `$ERROR_CODES` → `$errorCodes`), following Dart style.
+- **Dates.** The session-cache restore and the typed date getters accept a
+  `DateTime`, an ISO string or epoch milliseconds, as JS `new Date(value)`
+  does: the Convex adapter sends dates as numbers.
 - **`isJsonEqual`** compares `DateTime` by value; JS compares `Date` objects by
   reference, which defeats its own data-reference reuse.
 - **`parser.ts`** has no prototype-pollution guards: `jsonDecode` has no

@@ -13,6 +13,7 @@ import 'package:re_better_auth/src/better_auth/cookies/cookie_utils.dart';
 import 'package:re_better_auth/src/better_auth/core/db.dart';
 import 'package:re_better_auth/src/better_auth/core/json.dart';
 import 'package:re_better_auth/src/better_auth/core/plugin_client.dart';
+import 'package:re_better_auth/src/better_auth/utils/date.dart';
 import 'package:re_better_auth/src/better_fetch/create_fetch.dart';
 import 'package:re_better_auth/src/better_fetch/plugins.dart';
 import 'package:re_better_auth/src/better_fetch/types.dart';
@@ -39,12 +40,6 @@ String createURL(String path, String scheme) =>
 
 bool _truthy(Object? value) =>
     value != null && value != false && value != 0 && value != '';
-
-DateTime? _asDate(Object? value) => switch (value) {
-  final DateTime date => date,
-  final String text => DateTime.tryParse(text),
-  _ => null,
-};
 
 /// Merges a `Set-Cookie` [header] into the stored cookie JSON [prevCookie].
 /// `Max-Age<=0` or a past `Expires` deletes; others store `{value, expires}`.
@@ -86,7 +81,7 @@ String getCookie(String? cookie) {
   final pairs = <String>[];
   parsed.forEach((key, value) {
     final stored = value is Map<String, Object?> ? value : null;
-    final expires = _asDate(stored?['expires']);
+    final expires = toDate(stored?['expires']);
     if (expires != null && expires.isBefore(now)) return;
     pairs.add('$key=${stored?['value']}');
   });
@@ -233,7 +228,7 @@ class FlutterClientPlugin extends BetterAuthClientPlugin {
     if (cached is! Map<String, Object?>) return;
     final user = cached['user'];
     final session = cached['session'];
-    final expiresAt = _asDate(
+    final expiresAt = toDate(
       session is Map<String, Object?> ? session['expiresAt'] : null,
     );
     final fresh =

@@ -1,3 +1,9 @@
+## 0.1.1
+
+- The cached session is restored when `session.expiresAt` is epoch
+  milliseconds, as the Convex adapter sends it; the typed date getters accept
+  epoch milliseconds too.
+
 ## 0.1.0
 
 - Initial release: a port of `@better-auth/expo` 1.7.7 (`flutterClient`,
