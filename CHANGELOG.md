@@ -1,3 +1,10 @@
+## 0.2.0
+
+- Adds `emailOtpClient()` (`package:re_better_auth/plugins.dart`), the client
+  plugin for Better Auth's `emailOTP()` server plugin: typed methods for its
+  routes, its error codes, and the session refresh upstream runs after an OTP
+  sign-in, email verification or email-change request.
+
 ## 0.1.1
 
 - The cached session is restored when `session.expiresAt` is epoch

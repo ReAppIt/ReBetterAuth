@@ -51,6 +51,7 @@ its upstream source. This file is the map.
 | `lib/src/better_auth/core/error.dart` | `core/src/error/index.ts` (`BetterAuthError`) |
 | `lib/src/better_auth/core/json.dart` | `core/src/utils/json.ts` |
 | `lib/src/better_auth/core/logger.dart` | `core/src/env` logger |
+| `lib/src/better_auth/plugins/email_otp/client.dart` | `better-auth/src/plugins/email-otp/client.ts`, `error-codes.ts`; route types from `routes.ts` |
 | `lib/src/better_fetch/fetch.dart` | `better-fetch/src/fetch.ts` |
 | `lib/src/better_fetch/create_fetch.dart` | `better-fetch/src/create-fetch/index.ts` |
 | `lib/src/better_fetch/plugins.dart` | `better-fetch/src/plugins.ts` |
@@ -74,7 +75,8 @@ Tests mirror the same layout: `test/expo/*` ports `expo/test/*.test.ts`,
 `test/better_auth/client/*` ports `better-auth/src/client/*.test.ts`, and
 `test/better_fetch/*` ports `better-fetch/src/test/*.test.ts`. The Convex
 packages have no client tests upstream; `test/convex/*` and
-`test/convex_better_auth/*` are new.
+`test/convex_better_auth/*` are new. Upstream tests the email OTP plugin only
+against a server, so `test/better_auth/plugins/*` is new too.
 
 ## Deviations
 
@@ -104,6 +106,11 @@ packages have no client tests upstream; `test/convex/*` and
 - **Constant names** are lowerCamelCase (`STORE_UNMOUNT_DELAY` →
   `storeUnmountDelay`, `BASE_ERROR_CODES` → `baseErrorCodes`,
   `$ERROR_CODES` → `$errorCodes`), following Dart style.
+- **Email OTP plugin.** `emailOTPClient` is `emailOtpClient` and
+  `EMAIL_OTP_ERROR_CODES` is `emailOtpErrorCodes`, following Dart's acronym
+  style. Its routes are typed methods like the core ones (`emailOtp.*`,
+  `signIn.emailOtp`, the deprecated `forgetPassword.emailOtp`), and the OTP
+  `type` union is the `EmailOtpType` enum.
 - **Dates.** The session-cache restore and the typed date getters accept a
   `DateTime`, an ISO string or epoch milliseconds, as JS `new Date(value)`
   does: the Convex adapter sends dates as numbers.
@@ -177,8 +184,8 @@ packages have no client tests upstream; `test/convex/*` and
 
 - The server plugin (`expo/src/index.ts`, `routes.ts`): keep using
   `@better-auth/expo` on the server.
-- The 18 plugin clients in `better-auth/client/plugins` (two-factor,
-  organization, email OTP, ...). Their endpoints work through `client(path)`.
+- The other 17 plugin clients in `better-auth/client/plugins` (two-factor,
+  organization, ...). Their endpoints work through `client(path)`.
 - The Vue, Svelte, Solid and Lynx bindings.
 - Server-side and TypeScript type tests.
 

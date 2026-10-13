@@ -281,10 +281,53 @@ When the server moves from 1.6 to 1.7, update these calls: a 1.6-style call
 to a 1.7 server returns an error. TypeScript points them out after the upgrade;
 Dart cannot.
 
+### Email OTP
+
+With the server's [`emailOTP()`](https://www.better-auth.com/docs/plugins/email-otp)
+plugin, add `emailOtpClient()` to the client's plugins:
+
+```dart
+// lib/auth_client.dart
+import 'package:re_better_auth/plugins.dart';
+import 'package:re_better_auth/re_better_auth.dart';
+
+final authClient = createAuthClient(
+  baseURL: 'http://localhost:8081',
+  plugins: [
+    flutterClient(
+      scheme: 'myapp',
+      storagePrefix: 'myapp',
+      storage: const SecureStore(),
+    ),
+    emailOtpClient(),
+  ],
+);
+```
+
+```dart
+// lib/email_otp_sign_in.dart
+await authClient.emailOtp.sendVerificationOtp(
+  email: email,
+  type: EmailOtpType.signIn,
+);
+final (:data, :error) = await authClient.signIn.emailOtp(
+  email: email,
+  otp: code,
+);
+if (error?.code == 'INVALID_OTP') {
+  // Ask for the code again.
+}
+```
+
+The other routes are on `authClient.emailOtp`: `checkVerificationOtp`,
+`verifyEmail`, `requestPasswordReset`, `resetPassword`, `requestEmailChange`
+and `changeEmail`.
+
 ### Other endpoints
 
 Typed methods cover the core API (sessions, accounts, passwords, email
-verification and more). Call any other endpoint, such as a plugin's, by path:
+verification and more) and the email OTP plugin. Call any other endpoint, such
+as another plugin's, by path:
 
 ```dart
 // lib/two_factor.dart
@@ -516,7 +559,9 @@ copying the `expo-origin` header into `Origin`.
 - `scheme` is required: Flutter has no `app.json` to read it from.
 - Storage is async-only, because `flutter_secure_storage` has no synchronous API.
 - TypeScript infers every endpoint from the server; Dart has typed methods for
-  the core API and `authClient(path)` for everything else.
+  the core API and the email OTP plugin, and `authClient(path)` for everything
+  else.
+- `emailOTPClient` is `emailOtpClient`, following Dart's acronym style.
 - The account methods accept the fields of Better Auth 1.6 and 1.7; TypeScript
   allows only those of the installed version.
 - Web is not supported yet.
