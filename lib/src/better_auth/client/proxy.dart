@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:re_better_auth/src/better_auth/core/plugin_client.dart';
 import 'package:re_better_auth/src/better_fetch/create_fetch.dart';
 import 'package:re_better_auth/src/better_fetch/types.dart';
+import 'package:re_better_auth/src/better_fetch/utils.dart';
 import 'package:re_better_auth/src/nanostores/atom.dart';
 
 /// Method for [path]: forced by [knownPathMethods], else `fetchOptions.method`,
@@ -45,12 +46,12 @@ Future<BetterFetchResponse<T>> callDynamicPath<T>(
   );
   final extraBody = options.body;
   final callOptions = options.copy()
-    ..body = method == 'GET'
-        ? null
-        : <String, Object?>{
+    ..body = isPayloadMethod(method)
+        ? <String, Object?>{
             ...?body,
             if (extraBody is Map<String, Object?>) ...extraBody,
           }
+        : null
     ..query = query ?? options.query
     ..method = method
     ..onSuccess = (context) async {

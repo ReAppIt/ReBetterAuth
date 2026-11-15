@@ -134,7 +134,11 @@ SessionAtomBundle getSessionAtom(
         try {
           final refreshRes = await $fetch<Object?>(
             '/get-session',
-            ClientFetchOption(method: 'POST', signal: signal),
+            ClientFetchOption(
+              method: 'POST',
+              body: const <String, Object?>{},
+              signal: signal,
+            ),
           );
           if (signal.isCancelled) return _SessionFetchOutcome.aborted;
           data = refreshRes.data;

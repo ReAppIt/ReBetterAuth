@@ -3,7 +3,7 @@
 > [!NOTE]
 > **AI-written, human-reviewed.** Every line of this package was written by AI
 > (Claude, by Anthropic) as a port of the official
-> [`@better-auth/expo`](https://github.com/better-auth/better-auth/tree/v1.7.7/packages/expo)
+> [`@better-auth/expo`](https://github.com/better-auth/better-auth/tree/v1.7.25/packages/expo)
 > client, the better-auth core client it plugs into and Convex's Better Auth
 > provider, and the port has been fully reviewed by a human. It is not
 > affiliated with Better Auth or Convex.
@@ -348,12 +348,12 @@ component's client plugin and `ConvexBetterAuthProvider`.
 
 ### 1. Install the server packages
 
-In your Convex project, install the component and Better Auth 1.6, the version
+In your Convex project, install the component and Better Auth 1.7, the version
 the component requires:
 
 ```bash
 npm install convex@latest @convex-dev/better-auth
-npm install better-auth@~1.6.15 @better-auth/expo@~1.6.15
+npm install better-auth@~1.7.16 @better-auth/expo@~1.7.16
 ```
 
 ### 2. Register the component

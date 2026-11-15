@@ -296,7 +296,8 @@ void main() {
       },
     );
 
-    test('should send cookie for link-social ID token requests', () async {
+    test('should send cookie and expo-origin for link-social ID token '
+        'requests', () async {
       storage.map['better-auth_cookie'] = jsonEncode(<String, Object?>{
         'better-auth.session_token': <String, Object?>{
           'value': 'existing-token',
@@ -315,7 +316,7 @@ void main() {
         headers['cookie'],
         contains('better-auth.session_token=existing-token'),
       );
-      expect(headers.containsKey('expo-origin'), isFalse);
+      expect(headers['expo-origin'], 'better-auth://');
     });
 
     test('should preserve existing cookies on link-social', () async {

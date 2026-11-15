@@ -2,7 +2,6 @@ import 'package:re_better_auth/src/better_auth/client/routes.dart';
 import 'package:re_better_auth/src/better_auth/core/db.dart';
 import 'package:re_better_auth/src/better_auth/core/plugin_client.dart';
 import 'package:re_better_auth/src/better_fetch/types.dart';
-import 'package:re_better_auth/src/version.dart';
 
 /// `/convex/token` result.
 extension type ConvexToken(JsonMap json) {
@@ -17,9 +16,6 @@ class ConvexClientPlugin extends BetterAuthClientPlugin {
 
   @override
   String get id => 'convex';
-
-  @override
-  String get version => packageVersion;
 }
 
 /// The client plugin for `@convex-dev/better-auth`'s server `convex()` plugin;

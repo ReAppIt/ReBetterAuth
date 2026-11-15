@@ -34,6 +34,115 @@ void main() {
       expect('$url', 'http://localhost:4001/query?id=1');
     });
 
+    test("keeps the url's own origin when its path contains another url", () {
+      final url = getURL(
+        'http://localhost:4001/https://other.example.com/resource',
+      );
+      expect(
+        '$url',
+        'http://localhost:4001/https://other.example.com/resource',
+      );
+    });
+
+    test('keeps the base URL when the path contains another url', () {
+      final url = getURL(
+        '/https://other.example.com/resource',
+        BetterFetchOption(baseURL: 'https://api.example.com'),
+      );
+      expect(
+        '$url',
+        'https://api.example.com/https://other.example.com/resource',
+      );
+    });
+
+    test('resolves a path with a colon in its first segment against the '
+        'base URL', () {
+      final url = getURL(
+        'v1:batch',
+        BetterFetchOption(baseURL: 'https://api.example.com'),
+      );
+      expect('$url', 'https://api.example.com/v1:batch');
+    });
+
+    test('places a relative path that starts with http under the base URL', () {
+      final url = getURL(
+        'httpbin/get',
+        BetterFetchOption(baseURL: 'https://api.example.com'),
+      );
+      expect('$url', 'https://api.example.com/httpbin/get');
+    });
+
+    test('keeps every slash of a relative path without a base URL', () {
+      expect('${getURL('api/users')}', '/api/users');
+    });
+
+    test('removes the base URL only when the path starts with it', () {
+      final url = getURL('/x/api/y', BetterFetchOption(baseURL: '/api'));
+      expect('$url', '/api/x/api/y');
+    });
+
+    test('keeps the base URL path and query when the base URL has a query', () {
+      final url = getURL(
+        '/users',
+        BetterFetchOption(
+          baseURL: 'https://api.example.com/v1?key=1',
+          query: <String, Object?>{'page': '2'},
+        ),
+      );
+      expect('$url', 'https://api.example.com/v1/users?key=1&page=2');
+    });
+
+    test('keeps a second question mark inside the query', () {
+      final url = getURL(
+        '/search?q=a?b',
+        BetterFetchOption(baseURL: 'https://api.example.com'),
+      );
+      expect('$url', 'https://api.example.com/search?q=a%3Fb');
+    });
+
+    test('keeps a second question mark inside the base URL query', () {
+      final url = getURL(
+        '/search',
+        BetterFetchOption(baseURL: 'https://api.example.com/v1?q=a?b'),
+      );
+      expect('$url', 'https://api.example.com/v1/search?q=a%3Fb');
+    });
+
+    test('matches path params before encoding literal segments', () {
+      final url = getURL(
+        '/users/:user id',
+        BetterFetchOption(
+          baseURL: 'https://api.example.com',
+          params: <String, Object?>{'user id': '7'},
+        ),
+      );
+      expect('$url', 'https://api.example.com/users/7');
+    });
+
+    test('collapses repeated trailing slashes of the base URL', () {
+      final url = getURL(
+        '/users',
+        BetterFetchOption(baseURL: 'https://api.example.com/v1//'),
+      );
+      expect('$url', 'https://api.example.com/v1/users');
+    });
+
+    test('keeps empty segments inside the path', () {
+      final url = getURL(
+        '/a//b',
+        BetterFetchOption(baseURL: 'https://api.example.com/v1'),
+      );
+      expect('$url', 'https://api.example.com/v1/a//b');
+    });
+
+    test('drops the base URL fragment', () {
+      final url = getURL(
+        '/users',
+        BetterFetchOption(baseURL: 'https://api.example.com/v1#section'),
+      );
+      expect('$url', 'https://api.example.com/v1/users');
+    });
+
     test('normalizes repeated leading slashes before joining with base', () {
       final url = getURL(
         '///accounts/list',

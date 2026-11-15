@@ -595,6 +595,39 @@ void main() {
       });
     });
 
+    test('should send the session refresh POST as JSON', () {
+      fakeAsync((async) {
+        final fake = FakeFetch((request) {
+          if (request.method == 'POST') {
+            return jsonResponse(<String, Object?>{
+              'session': null,
+              'user': null,
+            });
+          }
+          return jsonResponse(<String, Object?>{
+            'needsRefresh': true,
+            'session': <String, Object?>{
+              'id': 'session-1',
+              'expiresAt': DateTime.now()
+                  .add(const Duration(minutes: 1))
+                  .toUtc()
+                  .toIso8601String(),
+            },
+            'user': <String, Object?>{'id': 'user-1'},
+          });
+        });
+        final session = getSessionAtom(_fetch(fake)).session;
+
+        final unsubscribe = session.listen((_, _) {});
+        async.elapse(Duration.zero);
+        unsubscribe();
+
+        final refresh = fake.requests.firstWhere((r) => r.method == 'POST');
+        expect(refresh.headers['content-type'], 'application/json');
+        expect(refresh.body, '{}');
+      });
+    });
+
     test('should revalidate after the session signal changes', () {
       fakeAsync((async) {
         final pending = Completer<FetchResponse>();

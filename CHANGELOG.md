@@ -1,3 +1,22 @@
+## 0.3.0
+
+- Tracks better-auth and `@better-auth/expo` 1.7.25, better-fetch 1.3.3 and
+  `@convex-dev/better-auth` 0.13.0, the component's first Better Auth 1.7
+  release.
+- `linkSocial` with an `idToken` sends `expo-origin`, so the server's origin
+  check accepts the session cookie it carries instead of failing with
+  `MISSING_OR_NULL_ORIGIN`.
+- The deferred session refresh (`POST /get-session`) sends a JSON `{}` body,
+  for servers that reject a bodyless POST with 415.
+- URLs: a path no longer replaces the base URL's host
+  (`/https://other.example/x` stays under `baseURL`); relative paths that start
+  with `http` or contain a colon resolve under `baseURL`; the base URL's query
+  is kept, and a second `?` stays in the query.
+- `authClient(path)` sends a body only for POST, PUT, PATCH and DELETE.
+- `ConvexBetterAuthProvider`: a non-forced token request joins a refresh in
+  flight instead of returning the cached token, and `isLoading` ends once the
+  session loads.
+
 ## 0.2.0
 
 - Adds `emailOtpClient()` (`package:re_better_auth/plugins.dart`), the client

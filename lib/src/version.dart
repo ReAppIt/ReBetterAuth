@@ -1,2 +1,2 @@
 /// This package's version, kept equal to `version` in pubspec.yaml.
-const String packageVersion = '0.2.0';
+const String packageVersion = '0.3.0';
