@@ -56,8 +56,8 @@ class AuthFromBetterAuth extends ChangeNotifier
       _fetchAccessToken = _createFetcher();
     }
     final next = ConvexAuthProviderState(
-      isLoading: query.isPending && _cachedToken == null,
-      isAuthenticated: session != null || _cachedToken != null,
+      isLoading: query.isPending && session == null,
+      isAuthenticated: session != null,
       fetchAccessToken: _fetchAccessToken,
     );
     if (next == _value) return;
@@ -66,12 +66,13 @@ class AuthFromBetterAuth extends ChangeNotifier
   }
 
   AuthTokenFetcher _createFetcher() => ({required bool forceRefreshToken}) {
-    final cachedToken = _cachedToken;
-    if (cachedToken != null && !forceRefreshToken) {
-      return Future<String?>.value(cachedToken);
+    if (!forceRefreshToken) {
+      // The in-flight request may be replacing a token Convex rejected.
+      final pending = _pendingToken;
+      if (pending != null) return pending;
+      final cachedToken = _cachedToken;
+      if (cachedToken != null) return Future<String?>.value(cachedToken);
     }
-    final pending = _pendingToken;
-    if (!forceRefreshToken && pending != null) return pending;
     late final Future<String?> request;
     request = _requestToken().whenComplete(() {
       if (identical(_pendingToken, request)) _pendingToken = null;

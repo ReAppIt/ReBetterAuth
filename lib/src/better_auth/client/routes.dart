@@ -185,7 +185,7 @@ BetterFetchResponse<List<R>> _mapList<R>(
   );
 }
 
-/// Typed core endpoints, each mirroring its zod schema at better-auth v1.7.7.
+/// Typed core endpoints, each mirroring its zod schema at better-auth v1.7.25.
 /// The account routes also accept the v1.6 fields.
 abstract class AuthRoutes {
   /// Calls any endpoint with the JS proxy semantics; see `callDynamicPath`.

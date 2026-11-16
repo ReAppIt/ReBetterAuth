@@ -7,13 +7,13 @@ its upstream source. This file is the map.
 
 | Project | Version | Source |
 |---|---|---|
-| `@better-auth/expo` | 1.7.7 | [`packages/expo`](https://github.com/better-auth/better-auth/tree/v1.7.7/packages/expo) |
-| `better-auth` client | 1.7.7 | [`packages/better-auth/src/client`](https://github.com/better-auth/better-auth/tree/v1.7.7/packages/better-auth/src/client) |
-| `@better-auth/core` | 1.7.7 | [`packages/core/src`](https://github.com/better-auth/better-auth/tree/v1.7.7/packages/core/src) |
-| `@better-fetch/fetch` | 1.3.2 | [`packages/better-fetch/src`](https://github.com/better-auth/better-fetch/tree/v1.3.2/packages/better-fetch/src) |
+| `@better-auth/expo` | 1.7.25 | [`packages/expo`](https://github.com/better-auth/better-auth/tree/v1.7.25/packages/expo) |
+| `better-auth` client | 1.7.25 | [`packages/better-auth/src/client`](https://github.com/better-auth/better-auth/tree/v1.7.25/packages/better-auth/src/client) |
+| `@better-auth/core` | 1.7.25 | [`packages/core/src`](https://github.com/better-auth/better-auth/tree/v1.7.25/packages/core/src) |
+| `@better-fetch/fetch` | 1.3.3 | [`packages/better-fetch/src`](https://github.com/better-auth/better-fetch/tree/v1.3.3/packages/better-fetch/src) |
 | `nanostores` | 1.3.0 | [`atom`, `lifecycle`](https://github.com/nanostores/nanostores/tree/1.3.0) |
-| `@convex-dev/better-auth` | 0.12.5 | [`src`](https://github.com/get-convex/better-auth/tree/v0.12.5/src) |
-| `convex` | 1.46.0 | [`src`](https://github.com/get-convex/convex-js/tree/npm/1.46.0/src) |
+| `@convex-dev/better-auth` | 0.13.0 | [`src`](https://github.com/get-convex/better-auth/tree/v0.13.0/src) |
+| `convex` | 1.50.0 | [`src`](https://github.com/get-convex/convex-js/tree/npm/1.50.0/src) |
 
 ## File map
 
@@ -173,7 +173,7 @@ against a server, so `test/better_auth/plugins/*` is new too.
   before Convex auth is cleared, the order React's effects guarantee.
 - **`useConvexAuth` takes the `BuildContext`.**
 - **Token cache.** The cached and in-flight tokens are dropped when the session
-  id changes; React's callback could return the previous session's token.
+  id changes; React keeps them keyed by session id, with the same effect.
   After a token fetch fails, the next successful session refresh makes a new
   fetcher, so an app that starts offline authenticates once it is back online;
   React stays unauthenticated until the session changes.

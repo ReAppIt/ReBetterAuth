@@ -94,6 +94,23 @@ void main() {
       });
     });
 
+    test('prefers a forced refresh in flight over the cached token', () {
+      fakeAsync((async) {
+        final server = _Server();
+        final auth = AuthFromBetterAuth(server.client());
+        async.flushTimers();
+        final fetch = auth.value.fetchAccessToken;
+        expect(_fetchNow(async, fetch), 'jwt-1');
+
+        final forced = fetch(forceRefreshToken: true);
+        expect(fetch(forceRefreshToken: false), same(forced));
+        async.flushTimers();
+        expect(_fetchNow(async, fetch), 'jwt-2');
+        expect(server.tokenRequests, 2);
+        auth.dispose();
+      });
+    });
+
     test('makes a new fetcher without the token for a new session', () {
       fakeAsync((async) {
         final server = _Server();

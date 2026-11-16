@@ -380,18 +380,21 @@ class FlutterClientPlugin extends BetterAuthClientPlugin {
     final pathname = _pathname(url, options.baseURL);
     if (pathname.endsWith('/get-session')) await _hydrateSessionCache();
     final body = options.body;
-    // ID-token sign-in is verified by the provider token, not by cookies.
     final isIdTokenRequest =
         body is Map<String, Object?> && body.containsKey('idToken');
 
     if (isIdTokenRequest) {
-      final storedCookie = pathname.endsWith('/link-social')
+      final isLinkSocial = pathname.endsWith('/link-social');
+      // ID-token sign-in is verified by the provider token. Link-social sends
+      // the session cookie, so the server's CSRF check also needs an origin.
+      final storedCookie = isLinkSocial
           ? await storage.getItemAsync(cookieName)
           : null;
       final cookie = getCookie(storedCookie);
       options.headers = <String, String?>{
         ...?options.headers,
         if (cookie.isNotEmpty) 'cookie': cookie,
+        if (isLinkSocial) 'expo-origin': createURL('', scheme),
         'x-skip-oauth-proxy': 'true',
       };
     } else {

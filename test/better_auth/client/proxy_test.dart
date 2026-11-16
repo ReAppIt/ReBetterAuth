@@ -182,6 +182,35 @@ void main() {
         expect(sets, 0);
       });
     });
+
+    test('sends the fetchOptions method, with a body only for payload '
+        'methods', () async {
+      final fake = FakeFetch((_) => jsonResponse(<String, Object?>{}));
+      final client = createFetch(
+        BetterFetchOption(
+          baseURL: 'http://localhost:3000',
+          customFetchImpl: fake.call,
+        ),
+      );
+      Future<void> probe(Map<String, Object?> body, String method) =>
+          callDynamicPath<Object?>(
+            '/probe',
+            client: client,
+            knownPathMethods: const <String, String>{},
+            atoms: const <String, Atom<Object?>>{},
+            atomListeners: const <ClientAtomListener>[],
+            body: body,
+            fetchOptions: ClientFetchOption(method: method),
+          );
+
+      await probe(<String, Object?>{}, 'POST');
+      await probe(<String, Object?>{'value': 'example'}, 'GET');
+      await probe(<String, Object?>{'value': 'example'}, 'get');
+      expect(
+        [for (final r in fake.requests) (r.method, r.body)],
+        [('POST', '{}'), ('GET', null), ('GET', null)],
+      );
+    });
   });
 
   group('getMethod', () {
